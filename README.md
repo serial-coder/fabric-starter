@@ -1,16 +1,15 @@
 # Starter Application for Hyperledger Fabric
 
-Create a network to jump start development of your decentralized application on 
-[Hyperledger Fabric](https://www.hyperledger.org/projects/fabric) platform.
+Helper utilities for easy pre-configure, deploy, extend, manage blockchain networks
+built on [Hyperledger Fabric](https://www.hyperledger.org/projects/fabric) platform.
 
-The network can be deployed to multiple docker containers on one host for development or to multiple hosts for testing 
-or production.
+Create a network to jump start development of your decentralized application.
 
-Scripts of this starter generate crypto material and config files, start the network and deploy your chaincodes. 
-Developers can use [REST API](https://github.com/olegabu/fabric-starter-rest) to invoke and query chaincodes, 
+Scripts of this starter generate crypto material and config files, start the network and deploy your chaincodes.
+Developers can use [REST API](https://github.com/olegabu/fabric-starter-rest) to invoke and query chaincodes,
 explore blocks and transactions.
 
-What's left is to develop your chaincodes and place them into the [chaincode](./chaincode) folder, 
+What's left is to develop your chaincodes and place them into the [chaincode](./chaincode) folder,
 and user interface as a single page web app that you can serve by by placing the sources into the [www](./www) folder.
 
 See also
@@ -19,11 +18,25 @@ See also
 - [fabric-starter-web](https://github.com/olegabu/fabric-starter-web) Starter web application to work with the REST API
 - [chaincode-node-storage](https://github.com/olegabu/chaincode-node-storage) Base class for node.js chaincodes with CRUD functionality
 
-# Install
 
-Install prerequisites: `docker >=18.06.1` and `docker-compose >=1.22.0`.
+## Preliminary configuration:
 
-## Ubuntu 18
+- Install prerequisites: `docker >=18.06.1` https://www.docker.com and `docker-compose >=1.22.0` https://www.docker.com/compose.
+
+## Blockchain network deployment
+
+Networks can be deployed in the following configurations:
+
+- [Network with 1 organization (and orderer) for development.](#create1org)
+- [Several organizations on one single host in multiple docker containers.](#example3org)
+- [Multiple hosts facilitated by using docker-machine possibilities of managing virtual machines](#multihost)
+- Multiple hosts - separate node for each organization either in virtual machine, cloud or real hardware servers in manual mode.
+
+
+# Prerequisites Installation
+
+## Docker
+### Ubuntu 18
 
 ```bash
 sudo apt update
@@ -40,20 +53,36 @@ sudo chmod +x /usr/local/bin/docker-compose
 sudo usermod -aG docker ${USER}
 ```
 
-## Mac OSX
+### Mac OSX
 
 Install `docker ce` and `docker compose` by [brew](https://brew.sh/).
 ```bash
 brew install docker 
 ```
 
-## Using particular version of Hyperldger Fabric
 
-To deploy network in a particular version of HL Fabric framework export desired version in the FABRIC_VERSION environment variable:
+## Docker-compose
+### Ubuntu 18
+```bash
+sudo curl -L "https://github.com/docker/compose/releases/download/1.23.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+```
+
+### Mac OSX
+See https://docs.docker.com/docker-for-mac/install/
+
+
+
+
+# Using particular version of Hyperldger Fabric
+
+If you need to use a previous version of Hyperledger Fabric export desired version in the FABRIC_VERSION environment variable before starting deployment:
 ```bash
 export FABRIC_VERSION=1.2.0
 ```
 
+
+<a name="create1org"></a>
 # Create a network with 1 organization for development
 
 ## Generate and start orderer
@@ -157,6 +186,7 @@ Reload *golang* chaincode.
 ./chaincode-reload.sh common example02 '["init","a","10","b","0"]' chaincode_example02 golang
 ```
 
+<a name="example3org"></a>
 # Example with a network of 3 organizations
 
 You can replace default DOMAIN *example.com* and *org1*, *org2* with the names of your organizations. 
@@ -323,223 +353,11 @@ curl -H "Authorization: Bearer $JWT" -H "Content-Type: application/json" \
 'http://localhost:4000/channels/common/chaincodes/reference?fcn=list&args=%5B%22account%22%5D'
 ```
 
+<a name="multihost"></a>
 # Multi host deployment
+See [doc/multihost.md](docs/multihost.md)
 
-There are two approaches for deploying blockchain network on multiple hosts - manual deployment and using docker-machine functionality.
-
-
-## Prepare multi host environment for manual deployment
-
-On each node including orderer clone *fabric-starter* project and export multi-host related flag and
-WORK_DIR variable specifying absolute path to fabric-starter folder:
-
-```bash
-export MULTIHOST=1
-export WORK_DIR=/home/ubuntu/fabric-starter
-```
-
-Start Swarm manager and join nodes as described in [swarm.md](swarm.md)
-If it's undesirable to use Swarm because of security reasons, configure DNS service(s) as described in [dns.md](dns.md)
-
-Deploy multi-host network in multihost environment as described below.
-
-
-## Preparing multi host deployment with docker-machine
-
-Install [docker-machine](https://docs.docker.com/machine/get-started/).
-For local deployment install [VirtualBox](https://www.virtualbox.org/wiki/Downloads).
-
-
-### Create orderer machine
-
-Create and start `orderer` docker host as a virtual machine.
-For AWS EC2 use `--driver amazonec2` and `export WORK_DIR=/home/ubuntu`.
-```bash
-docker-machine create --driver virtualbox orderer
-```
-
-See the ip address of the created VM.
-```bash
-docker-machine ls
-```
-Returns
-```
-NAME      ACTIVE   DRIVER       STATE     URL                         SWARM   DOCKER        ERRORS
-orderer   *        virtualbox   Running   tcp://192.168.99.100:2376           v18.06.1-ce 
-```
-
-Connect to `orderer` machine by setting env variables.
-```bash
-eval "$(docker-machine env orderer)"
-```
-
-Start docker swarm on `orderer` machine. Replace ip address `192.168.99.100` with the actual ip of the remote host interface.
-```bash
-docker swarm init --advertise-addr 192.168.99.100
-```
-will output a command to join the swarm by other hosts;
-
-The other hosts will be join to the swarm by the following command (this is an example, use the actual token and ip):
-```bash
-docker swarm join --token SWMTKN-1-4fbasgnyfz5uqhybbesr9gbhg0lqlcj5luotclhij87owzd4ve-4k16civlmj3hfz1q715csr8lf 192.168.99.100:2377
-```
-
-Copy local template files to `orderer` home directory (`/home/docker` on VirtualBox or `/home/ubuntu` on AWS EC2).
-```bash
-docker-machine scp -r templates orderer:templates
-```
-
-Now template files are on the `orderer` host and we can run `./generate-orderer.sh` but with a flag 
-`COMPOSE_FLAGS` which adds an extra docker-compose file `orderer-multihost.yaml` on top of the base 
-`docker-compose-orderer.yaml`. This file redefines volume mappings from `${PWD}` local to your host machine to 
-directory on remote host specified by `WORK_DIR` (defaulted to VirtualBox's home `/home/docker`; 
-for AWS EC2 do `export WORK_DIR=/home/ubuntu`).
-
-Later docker-machine allows to "connect" to created machines by invoking `docker-machine env` command for specified machine name (org1):
-```bash
-eval "$(docker-machine env org1)"
-```
-
-After that docker commands running in local console will actually be executed in the (remote) machine.
-
-
-# Deploy network on multiple nodes
-
-Connect to orderer machine (with *ssh* for manual or *docker-machine env* command for docker machine):
-```bash
-./generate-orderer.sh
-``` 
-
-Start *Orderer* containers on `orderer` machine.
-```bash
-docker-compose -f docker-compose-orderer.yaml -f orderer-multihost.yaml up -d
-```
-
-### Create org1 machine
-
-For docker-machine deployment create and start `org1` docker host as a virtual machine with VirtualBox.
-```bash
-docker-machine create --driver virtualbox org1
-```
-
-and connect to `org1` machine by setting env variables.
-```bash
-eval "$(docker-machine env org1)"
-```
-
-Or connect to `org1` machine by ssh for manual mode.
-
-Join swarm; this is an example, use the actual command output by `orderer`. In orderer console get the command:
-```bash
-docker swarm join-token worker
-```
-Execute the output command in `org1` console.
-```bash
-docker swarm join --token SWMTKN-1-4rzq6pyg3z2kw7eqhqdnc86isjpwo6t69t1q0ooy84csioieyc-ajcb0rdg3l15ronhytmldc59s 192.168.99.100:2377
-```
-
-Need to run a dummy container on this new host `org1` to force join overlay network `fabric-overlay` 
-created by docker-compose on `orderer` host. 
-```bash
-docker run -dit --name alpine --network fabric-overlay alpine
-```
-
-Copy local template and chaincode files to `org1` machine.
-```bash
-docker-machine scp -r templates org1:templates
-
-docker-machine scp -r chaincode org1:chaincode
-
-docker-machine scp -r webapp org1:webapp
-```
-
-Generate crypto material for member organization *org1*.
-
-```bash
-./generate-peer.sh
-``` 
-
-Start *org1* containers on `org1` machine.
-```bash
-docker-compose -f docker-compose.yaml -f multihost.yaml up -d
-``` 
-
-### Add org1 to the consortium as Orderer
-
-Now `org1` machine is up and running a web container serving root certificates of *org1*. The orderer can access it
-via an overlay network, download certs and add *org1*.
-
-Connect to `orderer` machine by setting env variables or by SSH.
-```bash
-eval "$(docker-machine env orderer)"
-```
-
-Run local script to add to the consortium.
-```
-./consortium-add-org.sh org1
-```
-
-### Create a channel and deploy chaincode as org1
-
-Connect to `org1` machine by setting env variables.
-```bash
-eval "$(docker-machine env org1)"
-```
-
-Run local scripts to create and join channels.
-```
-./channel-create.sh common
-
-./channel-join.sh common
-
-./chaincode-install.sh reference
-
-./chaincode-instantiate.sh common reference 
-```
-
-### Create org2 machine
-
-```bash
-export ORG=org2
-export ORGS='{"org1":"peer0.org1.example.com:7051","org2":"peer0.org2.example.com:7051"}' CAS='{"org2":"ca.org2.example.com:7054"}'
-docker-machine create --driver virtualbox org2
-eval "$(docker-machine env org2)"
-docker swarm join --token SWMTKN-1-4fbasgnyfz5uqhybbesr9gbhg0lqlcj5luotclhij87owzd4ve-4k16civlmj3hfz1q715csr8lf 192.168.99.102:2377
-docker run -dit --name alpine --network fabric-overlay alpine
-docker-machine scp -r templates org2:templates
-docker-machine scp -r chaincode org2:chaincode
-./generate-peer.sh
-docker-compose -f docker-compose.yaml -f multihost.yaml up
-```
-
-Return to `org1` machine to add *org2* to the channel.
-```bash
-eval "$(docker-machine env org1)"
-./channel-add-org.sh common org2 
-```
-
-Back to `org2` machine to join channel.
-```bash
-export ORG=org2
-eval "$(docker-machine env org2)"
-./channel-join.sh common
-```
-
-Install chaincode (no need to instantiate) and query.
-```bash
-./chaincode-install.sh reference
-./chaincode-query.sh common reference '["list","account"]'
-```
-
-### Create machines for other organizations
-
-The above steps are collected into a single script that creates a machine, generates crypto material and starts 
-containers on a remote or virtual host for a new org. This example is for *org3*; replace swarm token and manager ip 
-with your own from `docker swarm join-token worker`.
-```bash
-./machine-create-peer.sh SWMTKN-1-4fbasgnyfz5uqhybbesr9gbhg0lqlcj5luotclhij87owzd4ve-4k16civlmj3hfz1q715csr8lf 192.168.99.102 org3
-```
 
 # LDAP Configuration
 
-See [ldap.md](ldap.md)
+See [doc/ldap.md](docs/ldap.md)
