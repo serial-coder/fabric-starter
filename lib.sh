@@ -241,7 +241,7 @@ function callChaincode() {
     chaincodeName=${2:?Chaincode name must be specified}
     arguments=${3:-[]}
     arguments="{\"Args\":$arguments}"
-    transientObj=${4:-{}}
+    transientObj=${4:-'{}'}
     action=${5:-query}
 
     runCLI "CORE_PEER_ADDRESS=peer0.$ORG.$DOMAIN:7051 peer chaincode $action -n $chaincodeName -C $channelName -c '$arguments' --transient '$transientObj' --tls --cafile /etc/hyperledger/crypto/orderer/tls/ca.crt"
