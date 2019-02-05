@@ -226,14 +226,18 @@ function upgradeChaincode() {
     chaincodeName=${2:?Chaincode name must be specified}
     initArguments=${3:-[]}
     chaincodeVersion=${4:-1.0}
-    policy=${5}
+    privateCollectionPath=${5}
+    policy=${6}
+
+    [ -n "$privateCollectionPath" ] && privateCollectionParam=" --collections-config /opt/chaincode/${privateCollectionPath}"
+
     if [ -n "$policy" ]; then
         policy="-P \"$policy\"";
     fi
 
     arguments="{\"Args\":$initArguments}"
 
-    runCLI "CORE_PEER_ADDRESS=peer0.$ORG.$DOMAIN:7051 peer chaincode upgrade -n $chaincodeName -v $chaincodeVersion -c '$arguments' -o orderer.$DOMAIN:7050 -C $channelName "$policy" --tls --cafile /etc/hyperledger/crypto/orderer/tls/ca.crt"
+    runCLI "CORE_PEER_ADDRESS=peer0.$ORG.$DOMAIN:7051 peer chaincode upgrade -n $chaincodeName -v $chaincodeVersion -c '$arguments' -o orderer.$DOMAIN:7050 -C $channelName $privateCollectionParam "$policy" --tls --cafile /etc/hyperledger/crypto/orderer/tls/ca.crt"
 }
 
 function callChaincode() {
