@@ -53,6 +53,8 @@ function runCLIWithComposerOverrides() {
 function runCLI() {
     local command="$1"
 
+    echo $command
+
     if [ -n "$EXECUTE_BY_ORDERER" ]; then
         service="cli.orderer"
         checkContainer="cli.$DOMAIN"
@@ -239,9 +241,10 @@ function callChaincode() {
     chaincodeName=${2:?Chaincode name must be specified}
     arguments=${3:-[]}
     arguments="{\"Args\":$arguments}"
-    action=${4:-query}
-	echo "CORE_PEER_ADDRESS=peer0.$ORG.$DOMAIN:7051 peer chaincode $action -n $chaincodeName -C $channelName -c '$arguments'"
-    runCLI "CORE_PEER_ADDRESS=peer0.$ORG.$DOMAIN:7051 peer chaincode $action -n $chaincodeName -C $channelName -c '$arguments' --tls --cafile /etc/hyperledger/crypto/orderer/tls/ca.crt"
+    transientObj=${4:-{}}
+    action=${5:-query}
+
+    runCLI "CORE_PEER_ADDRESS=peer0.$ORG.$DOMAIN:7051 peer chaincode $action -n $chaincodeName -C $channelName -c '$arguments' --transient '$transientObj' --tls --cafile /etc/hyperledger/crypto/orderer/tls/ca.crt"
 }
 
 function queryChaincode() {
