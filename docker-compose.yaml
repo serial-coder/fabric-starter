@@ -144,7 +144,8 @@ services:
   # fabric-rest api server
   api:
 #    build: ../fabric-starter-rest
-    image: olegabu/fabric-starter-rest
+    # image: olegabu/fabric-starter-rest
+    image: br1gh7n4ry/fabric-starter-rest-support-transient-args
     container_name: api.${ORG:-org1}.${DOMAIN:-example.com}
     ports:
       - ${API_PORT:-4000}:3000
