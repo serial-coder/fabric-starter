@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 source lib.sh
-usageMsg="$0 channelName chaincodeName [init args='[]'] [path to chaincode=/opt/chaincode/node/<chaincodeName>] [lang=node]"
+usageMsg="$0 channelName chaincodeName [init args='[]'] [path to chaincode=/opt/chaincode/node/<chaincodeName>] [privateCollectionPath] [lang=node]"
 exampleMsg="$0 common reference"
 
 IFS=
@@ -9,15 +9,16 @@ chaincodeName=${2:?`printUsage "$usageMsg" "$exampleMsg"`}
 
 channelName=$1
 chaincodeName=$2
-a=${3:-'[]'}
-p=$4
-l=$5
-v="1.$RANDOM"
+args=${3:-'[]'}
+pathToChaincode=$4
+privateCollectionPath=$5
+language=$6
+version="1.$RANDOM"
 
-./chaincode-install.sh $chaincodeName $v $p  $l
-./chaincode-upgrade.sh $channelName $chaincodeName $a $v
+./chaincode-install.sh $chaincodeName $version $pathToChaincode $language
+./chaincode-upgrade.sh $channelName $chaincodeName $args $version $privateCollectionPath
 
-printInColor "1;32" "Upgraded to version $v"
+printInColor "1;32" "Upgraded to version $version"
 
 
 
