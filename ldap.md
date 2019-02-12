@@ -37,7 +37,8 @@ Generate the peer configuration as usually:
 
 Start Ldap service and Ldap PHP Admin application in docker containers:
  ```bash
- docker-compose -f docker-compose-ldap.yaml up
+#  docker-compose -f docker-compose-ldap.yaml up  # For old version
+ docker-compose -f ldap.yaml up
   ```
 
 Ldap PHP Admin now is available at http://localhost:6080
