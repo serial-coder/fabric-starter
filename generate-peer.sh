@@ -19,7 +19,13 @@ fi
 [ -n "$LDAP_ENABLED" ] && echo "LDAP Url used: $LDAP_BASE_DN"
 
 envSubst "templates/cryptogen-peer-template.yaml" "crypto-config/cryptogen-$ORG.yaml"
-envSubst "templates/fabric-ca-server-template.yaml" "crypto-config/fabric-ca-server-config-$ORG.yaml" "export LDAP_BASE_DN=${LDAP_BASE_DN}"
+
+if [ -n "$LDAP_ISOLATE_ORG" ]; then
+    envSubst "templates/fabric-ca-server-isolate-ldap-template.yaml" "crypto-config/fabric-ca-server-config-$ORG.yaml" "export LDAP_BASE_DN=${LDAP_BASE_DN}"
+else
+    envSubst "templates/fabric-ca-server-template.yaml" "crypto-config/fabric-ca-server-config-$ORG.yaml" "export LDAP_BASE_DN=${LDAP_BASE_DN}"
+fi
+
 runCLI "rm -rf crypto-config/peerOrganizations/$ORG.$DOMAIN \
     && cryptogen generate --config=crypto-config/cryptogen-$ORG.yaml \
     && mv crypto-config/peerOrganizations/$ORG.$DOMAIN/ca/*_sk crypto-config/peerOrganizations/$ORG.$DOMAIN/ca/sk.pem \
