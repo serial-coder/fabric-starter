@@ -117,7 +117,7 @@ registry:
           hf.Revoker: true
           hf.IntermediateCA: true
           hf.GenCRL: true
-          hf.Registrar.Attributes: "firstName"
+          hf.Registrar.Attributes: "title,description"
           hf.AffiliationMgr: true
           # firstName: "*"
 
@@ -166,7 +166,7 @@ ldap:
     attribute:
       # 'names' is an array of strings containing the LDAP attribute names which are
       # requested from the LDAP server for an LDAP identity's entry
-      names: ['title']
+      names: ['title','description']
       # The 'converters' section is used to convert an LDAP entry to the value of
       # a fabric CA attribute.
       # For example, the following converts an LDAP 'uid' attribute
@@ -177,8 +177,10 @@ ldap:
       #       - name: hf.Revoker
       #         value: attr("uid") =~ "revoker*"
       converters:
-         - name: firstName
+         - name: title
            value: attr("title")
+         - name: description
+           value: attr("description")
 
       # The 'maps' section contains named maps which may be referenced by the 'map'
       # function in the 'converters' section to map LDAP responses to arbitrary values.
