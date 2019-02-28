@@ -145,8 +145,7 @@ services:
   api:
 #    build: ../fabric-starter-rest
     # image: olegabu/fabric-starter-rest:${FABRIC_STARTER_REST_VERSION:-latest}
-    # image: br1gh7n4ry/fabric-starter-rest-support-transient-args:${FABRIC_STARTER_REST_VERSION:-latest}
-    image: br1gh7n4ry/fabric-starter-rest-support-cc-level-abac:${FABRIC_STARTER_REST_VERSION:-latest}
+    image: seria1coder/fabric-starter-rest-serial-coder-extended:${FABRIC_STARTER_REST_VERSION:-latest}
     container_name: api.${ORG:-org1}.${DOMAIN:-example.com}
     ports:
       - ${API_PORT:-4000}:3000
