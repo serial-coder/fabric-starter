@@ -43,4 +43,4 @@ services:
 networks:
   default:
     external:
-      name: fabric-starter_default
+      name: ${DEFAULT_NETWORK_NAME:-fabric-starter}_default
